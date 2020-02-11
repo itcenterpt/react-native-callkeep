@@ -136,6 +136,11 @@ class RNCallKeep {
       ? RNCallKeepModule.checkSpeaker()
       : Promise.reject('RNCallKeep.checkSpeaker was called from unsupported OS');
 
+  overwriteAudioPort = (audioPort) =>
+    isIOS
+      ? RNCallKeepModule.overwriteAudioPort(audioPort)
+      : Promise.reject('RNCallKeep.overwriteAudioPort was called from unsupported OS');
+
   setAvailable = (state) => {
     if (isIOS) {
       return;

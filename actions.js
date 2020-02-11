@@ -6,6 +6,7 @@ const eventEmitter = new NativeEventEmitter(RNCallKeepModule);
 const RNCallKeepDidReceiveStartCallAction = 'RNCallKeepDidReceiveStartCallAction';
 const RNCallKeepPerformAnswerCallAction = 'RNCallKeepPerformAnswerCallAction';
 const RNCallKeepPerformEndCallAction = 'RNCallKeepPerformEndCallAction';
+const RNCallKeepDidChangeAudioRoute = 'RNCallKeepDidChangeAudioRoute';
 const RNCallKeepDidActivateAudioSession = 'RNCallKeepDidActivateAudioSession';
 const RNCallKeepDidDeactivateAudioSession = 'RNCallKeepDidDeactivateAudioSession';
 const RNCallKeepDidDisplayIncomingCall = 'RNCallKeepDidDisplayIncomingCall';
@@ -30,6 +31,9 @@ const answerCall = handler =>
 
 const endCall = handler =>
   eventEmitter.addListener(RNCallKeepPerformEndCallAction, (data) => handler(data));
+
+const didChangeAudioRoute = handler =>
+  eventEmitter.addListener(RNCallKeepDidChangeAudioRoute, handler);
 
 const didActivateAudioSession = handler =>
   eventEmitter.addListener(RNCallKeepDidActivateAudioSession, handler);
@@ -59,6 +63,7 @@ export const listeners = {
   didReceiveStartCallAction,
   answerCall,
   endCall,
+  didChangeAudioRoute,
   didActivateAudioSession,
   didDeactivateAudioSession,
   didDisplayIncomingCall,

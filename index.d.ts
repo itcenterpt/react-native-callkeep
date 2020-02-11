@@ -2,6 +2,7 @@ export type Events =
   'didReceiveStartCallAction' |
   'answerCall' |
   'endCall' |
+  'didChangeAudioRoute' |
   'didActivateAudioSession' |
   'didDeactivateAudioSession' |
   'didDisplayIncomingCall' |
@@ -156,6 +157,10 @@ export default class RNCallKeep {
   }
 
   static checkSpeaker(): Promise<boolean> {
+
+  }
+
+  static overwriteAudioPort(audioPort: string): Promise<boolean> {
 
   }
 

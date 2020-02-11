@@ -25,6 +25,7 @@ static NSString *const RNCallKeepHandleStartCallNotification = @"RNCallKeepHandl
 static NSString *const RNCallKeepDidReceiveStartCallAction = @"RNCallKeepDidReceiveStartCallAction";
 static NSString *const RNCallKeepPerformAnswerCallAction = @"RNCallKeepPerformAnswerCallAction";
 static NSString *const RNCallKeepPerformEndCallAction = @"RNCallKeepPerformEndCallAction";
+static NSString *const RNCallKeepDidChangeAudioRoute = @"RNCallKeepDidChangeAudioRoute";
 static NSString *const RNCallKeepDidActivateAudioSession = @"RNCallKeepDidActivateAudioSession";
 static NSString *const RNCallKeepDidDeactivateAudioSession = @"RNCallKeepDidDeactivateAudioSession";
 static NSString *const RNCallKeepDidDisplayIncomingCall = @"RNCallKeepDidDisplayIncomingCall";
@@ -85,6 +86,7 @@ RCT_EXPORT_MODULE()
         RNCallKeepDidReceiveStartCallAction,
         RNCallKeepPerformAnswerCallAction,
         RNCallKeepPerformEndCallAction,
+        RNCallKeepDidChangeAudioRoute,
         RNCallKeepDidActivateAudioSession,
         RNCallKeepDidDeactivateAudioSession,
         RNCallKeepDidDisplayIncomingCall,
@@ -141,6 +143,32 @@ RCT_REMAP_METHOD(checkSpeaker,
     NSString *output = [AVAudioSession sharedInstance].currentRoute.outputs.count > 0 ? [AVAudioSession sharedInstance].currentRoute.outputs[0].portType : nil;
     resolve(@([output isEqualToString:@"Speaker"]));
 }
+
+RCT_REMAP_METHOD(overwriteAudioPort,
+                  audioPort: (NSString *)audioPort
+                  overwriteAudioPortResolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+#ifdef DEBUG
+    NSLog(@"[RNCallKeep][overwriteAudioPort] audioPort = %@", audioPort);
+#endif
+
+    AVAudioSession* audioSession = [AVAudioSession sharedInstance];
+
+    if ([audioPort isEqualToString:@"SPEAKER"]) {
+        resolve(@([audioSession overrideOutputAudioPort:AVAudioSessionPortOverrideNone error:nil]));
+    } else if ([audioPort isEqualToString:@"EARPIECE"]) {
+        resolve(@([audioSession overrideOutputAudioPort:AVAudioSessionPortOverrideSpeaker error:nil]));
+    } else if ([audioPort isEqualToString:@"TOGGLE"]) {
+        NSString *output = [AVAudioSession sharedInstance].currentRoute.outputs.count > 0 ? [AVAudioSession sharedInstance].currentRoute.outputs[0].portType : nil;
+        if ([output isEqualToString:@"Speaker"]) {
+            resolve(@([audioSession overrideOutputAudioPort:AVAudioSessionPortOverrideNone error:nil]));
+        } else {
+            resolve(@([audioSession overrideOutputAudioPort:AVAudioSessionPortOverrideSpeaker error:nil]));
+        }
+    }
+}
+
 
 #pragma mark - CXCallController call actions
 
@@ -637,6 +665,23 @@ RCT_EXPORT_METHOD(reportUpdatedCall:(NSString *)uuidString contactIdentifier:(NS
 #ifdef DEBUG
     NSLog(@"[RNCallKeep][CXProviderDelegate][provider:timedOutPerformingAction]");
 #endif
+}
+
+- (void)provider:(CXProvider *)provider didChangeAudioRoute:(AVAudioSession *)audioSession
+{
+#ifdef DEBUG
+    NSLog(@"[RNCallKeep][CXProviderDelegate][provider:didChangeAudioRoute]");
+#endif
+    NSDictionary *userInfo
+    = @{
+        AVAudioSessionRouteChangeReasonKey: [NSNumber numberWithInt:AVAudioSessionRouteChangeReasonKey],
+        AVAudioSessionRouteChangePreviousRouteKey: [NSNumber numberWithInt:AVAudioSessionRouteChangePreviousRouteKey]
+        AVAudioSessionRouteChangeReason: [NSNumber numberWithInt:AVAudioSessionRouteChangeReason]
+    };
+    [[NSNotificationCenter defaultCenter] postNotificationName:AVAudioSessionRouteChangeNotification object:nil userInfo:userInfo];
+
+    [self configureAudioSession];
+    [self sendEventWithName:RNCallKeepDidChangeAudioRoute body:nil];
 }
 
 - (void)provider:(CXProvider *)provider didActivateAudioSession:(AVAudioSession *)audioSession

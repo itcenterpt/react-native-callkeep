@@ -318,6 +318,16 @@ _This feature is available only on iOS._
 ```js
 RNCallKeep.checkSpeaker();
 ```
+### overwriteAudioPort
+
+Changue audio port bettewn speaker or other devide (e.g: earpiece, cenas das orelhas) and returns a promise with a boolean value (`true` if action was succssefull, `false` otherwise).
+
+```js
+RNCallKeep.overwriteAudioPort(audioPort);
+```
+
+- `audioPort`: string
+  - 'SPEAKER', will route the audio to the speaker; 'NONE', to another device (a connected audio output or, by default, the earpiece) and 'TOGGLE' will change beetween one or another.
 
 ### supportConnectionService (async)
 
